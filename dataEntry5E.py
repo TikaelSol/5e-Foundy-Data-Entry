@@ -44,6 +44,13 @@ def handle_proficiencies(string):
     
     return string
 
+def handle_bolded_subtitles(string):
+    string = sub(r"\n([A-Z]\w+)\.", r"</p><p><strong>\1.</strong>", string)
+    string = sub(r"\n([A-Z]\w+) ([A-Z]\w+)\.", r"</p><p><strong>\1 \2.</strong>", string)
+    string = sub(r"\n([A-Z]\w+) ([A-Z]\w+) ([A-Z]\w+)\.", r"</p><p><strong>\1 \2 \3.</strong>", string)
+    
+    return string
+
 def handle_background_tables(string):
     string = sub(r"d8 Personality Trait", r"<table><thead><tr><th>d8</th><th>Personality Trait</th></tr></thead><tbody>", string)
     string = sub(r"d6 Ideal", r"</table><table><thead><tr><th>d6</th><th>Ideal</th></tr></thead><tbody>", string)
@@ -68,6 +75,7 @@ def reformat(text):
     string = "<p>" + text + "</p>"    
     
     string = handle_headers(string)
+    string = handle_bolded_subtitles(string)
     
     string = string.replace("\n", " ")
     string = string.replace("<p><p>", "<p>")
