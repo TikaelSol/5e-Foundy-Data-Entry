@@ -20,6 +20,7 @@ def handle_damage_rolls(string):
 def handle_bullet_lists(string):
     string = sub(r"•", "<ul><li>", string, count=1)
     string = sub(r"•", "</li><li>", string)
+    string = sub(r"•", "</li><li>", string)
     
     return string
 
@@ -28,9 +29,9 @@ def handle_headers(string):
     string = sub(r"\n([A-Z]\w+) (\w+)\n", r"<h2>\1 \2</h2>", string)
     string = sub(r"\n([A-Z]\w+) (\w+) (\w+)\n", r"<h2>\1 \2 \3</h2>", string)
     
-    string = sub(r"FEATURE: (\w+) (\w+) (\w+)", r"<h2>Feature: \1 \2 \3</h2>", string)
-    string = sub(r"FEATURE: (\w+) (\w+)", r"<h2>Feature: \1 \2</h2>", string)
-    string = sub(r"FEATURE: (\w+)", r"<h2>Feature: \1</h2>", string)
+    string = sub(r"FEATURE: (\w+) (\w+) (\w+)", r"<p><strong>Feature:</strong> \1 \2 \3</p>", string)
+    string = sub(r"FEATURE: (\w+) (\w+)", r"<p><strong>Feature:</strong> \1 \2</p>", string)
+    string = sub(r"FEATURE: (\w+)", r"<p><strong>Feature:</strong> \1</p>", string)
     
     string = sub(r"<h2>(.*?)</h2>", to_title, string)
     string = sub(r"H2", r"h2", string)
@@ -86,6 +87,8 @@ def reformat(text):
     if "d8 Personality Trait" in string:
         string = handle_background_tables(string)
 
+    string = handle_bullet_lists(string)
+
     string = handle_proficiencies(string)
 
     string = handle_damage_rolls(string)
@@ -113,7 +116,7 @@ Width = 800
 
 root = Tk()
 
-root.title("5E on Foundry VTT Data Entry v 1.0")
+root.title("5E on Foundry VTT Data Entry v 1.0.1")
 
 canvas = Canvas(root, height = Height, width = Width)
 canvas.pack()
