@@ -1,6 +1,8 @@
 from regex import sub
 from pyperclip import copy
-from tkinter import Tk, Frame, Canvas, Text, Button, END
+from tkinter import Tk, Frame, Canvas, Text, Button, END, BooleanVar, Menu
+
+deityFields = "(Alignment|Siblings|Temples|Worshippers|Sacred Animal|Sacred Colors|Suggested Domains|Favored Weapon|Divine Ability|Divine Skill|Key Edicts|Key Anathema)"
 
 def to_title(match_obj):
     if match_obj.group() is not None:
@@ -10,8 +12,8 @@ def handle_damage_rolls(string):
     string = sub(r" (\d)d(\d) (rounds|minutes|hours|days)", r" [[/r \1d\2 #\3]]{\1d\2 \3}", string)
     string = sub(r" (\d+) (\w*) damage", r" [[/r (\1)[\2]]]{\1 \2 damage}", string)
     string = sub(r"(\d+)d(\d+)\+(\d+) (\w*) damage", r"[[/r (\1d\2+\3)[\4]]]{\1d\2+\3 \4 damage}", string)
-    string = sub(r"(\d+)d(\d+) (\w*) damage", r"[[/r \1d\2[\3]]]{\1d\2 \3 damage", string)
-    string = sub(r"(\d+)d(\d+) damage", r"[[/r \1d\2]]{\1d\2 damage", string)
+    string = sub(r"(\d+)d(\d+) (\w*) damage", r"[[/r \1d\2[\3]]]{\1d\2 \3 damage}", string)
+    string = sub(r"(\d+)d(\d+) damage", r"[[/r \1d\2]] damage", string)
     string = sub(r"(\d+)d(\d+) (\w+)(\,|\.)", r"[[/r \1d\2 #\3]]{\1d\2 \3}\4", string)
     string = sub(r"(\d+)d(\d+)\.", r"[[/r \1d\2]].", string)
     
@@ -25,18 +27,20 @@ def handle_bullet_lists(string):
     return string
 
 def handle_headers(string):
-    string = sub(r"\n([A-Z]\w+)\n", r"<h2>\1</h2>", string)
-    string = sub(r"\n([A-Z]\w+) (\w+)\n", r"<h2>\1 \2</h2>", string)
-    string = sub(r"\n([A-Z]\w+) (\w+) (\w+)\n", r"<h2>\1 \2 \3</h2>", string)
+    string = sub(r"\n([A-Z]\w+)\n", r"<h2>\1</h2><p>", string)
+    string = sub(r"\n([A-Z]\w+) (\w+)\n", r"<h2>\1 \2</h2><p>", string)
+    string = sub(r"\n([A-Z]\w+) (\w+) (\w+)\n", r"<h2>\1 \2 \3</h2><p>", string)
     
-    string = sub(r"FEATURE: (\w+) (\w+) (\w+)", r"<p><strong>Feature:</strong> \1 \2 \3</p>", string)
-    string = sub(r"FEATURE: (\w+) (\w+)", r"<p><strong>Feature:</strong> \1 \2</p>", string)
-    string = sub(r"FEATURE: (\w+)", r"<p><strong>Feature:</strong> \1</p>", string)
+    string = sub(r"FEATURE: (\w+) (\w+) (\w+)", r"<p><strong>Feature:</strong> \1 \2 \3</p><p>", string)
+    string = sub(r"FEATURE: (\w+) (\w+)", r"<p><strong>Feature:</strong> \1 \2</p><p>", string)
+    string = sub(r"FEATURE: (\w+)", r"<p><strong>Feature:</strong> \1</p><p>", string)
     
     string = sub(r"<h2>(.*?)</h2>", to_title, string)
     string = sub(r"H2", r"h2", string)
     
     string = sub(r"\.<h2>", r".</p><h2>", string)
+    
+    string = sub(r"<h2>Sample (.*?)(n|N)ames</h2>", r"<h3>Sample \1\2ames</h3>", string)
     
     return string
 
@@ -49,6 +53,8 @@ def handle_bolded_subtitles(string):
     string = sub(r"\n([A-Z]\w+)\.", r"</p><p><strong>\1.</strong>", string)
     string = sub(r"\n([A-Z]\w+) ([A-Z]\w+)\.", r"</p><p><strong>\1 \2.</strong>", string)
     string = sub(r"\n([A-Z]\w+) ([A-Z]\w+) ([A-Z]\w+)\.", r"</p><p><strong>\1 \2 \3.</strong>", string)
+    
+    string = sub(r"<p><strong>(You Might|Others Probably)\.</strong>\.\.", r"<h2>\1...</h2>", string)
     
     return string
 
@@ -72,8 +78,31 @@ def handle_background_tables(string):
     
     return string
 
+def handle_deity(string):
+    string = sub(r"%s\:" % deityFields, r"<p><strong>\1:</strong>", string)
+    
+    return string
+
+def handle_secrets(string):
+    string = sub(r"(.*?)/secret", r"<section class='secret'>\1</section>", string)
+    
+    return string
+
+def handle_actions(string): 
+    string = sub(r"(\+|\-)(\d+) to hit", r"<strong>\1\2 to hit</strong>", string)
+    string = sub(r"reach (\d) ft", r"reach <strong>\1 ft</strong>", string)
+    string = sub(r"Hit: (\d+) \((\d+)d(\d+) (\+|-) (\d+)\) (\w+) damage", r"Hit: <strong>\1 (\2d\3 \4 \5) \6 damage</strong>", string)
+    string = sub(r"Hit: (\d+) \((\d+)d(\d+)\) (\w+) damage", r"Hit: <strong>\1 (\2d\3) \6 damage</strong>", string)
+    string = sub(r"DC (\d+) (\w+) saving throw", r"<strong>DC \1 \2</strong> saving throw", string)
+    string = sub(r"DC (\d+) (\w+) saving throw", r"<strong>DC \1 \2</strong> saving throw", string)
+    string = sub(r"a (\w+) saving throw", r"a <strong>\1</strong> saving throw", string)
+    
+    string = handle_secrets(string)
+    
+    return string
+
 def reformat(text):
-    string = "<p>" + text + "</p>"    
+    string = "<p>" + text   
     
     string = handle_headers(string)
     string = handle_bolded_subtitles(string)
@@ -86,12 +115,17 @@ def reformat(text):
 
     if "d8 Personality Trait" in string:
         string = handle_background_tables(string)
+        
+    string = handle_deity(string)
 
     string = handle_bullet_lists(string)
 
     string = handle_proficiencies(string)
 
     string = handle_damage_rolls(string)
+    
+    if action_entry:
+        string = handle_actions(string)
     
     string = string.replace("<p></p>","").replace("<p><p>","<p>")
     string = string.replace(" <p>","</p><p>")
@@ -116,7 +150,7 @@ Width = 800
 
 root = Tk()
 
-root.title("5E on Foundry VTT Data Entry v 1.0.1")
+root.title("5E on Foundry VTT Data Entry v 1.0.3")
 
 canvas = Canvas(root, height = Height, width = Width)
 canvas.pack()
@@ -129,6 +163,27 @@ inputText.place(rely = 0.2, relwidth = 0.49, relheight = 0.8)
 
 outputText = Text(frame, bg = 'white')
 outputText.place(relx = 0.51, rely = 0.2, relwidth = 0.49, relheight = 0.8)
+
+## Settings
+###############################################################################
+action_entry = BooleanVar(value = True)
+# table_entry = BooleanVar(value = False)
+# unused = BooleanVar(value = False)
+###############################################################################
+
+
+# Build settings menu
+##############################################################################
+
+menu = Menu(root)
+
+settings_menu = Menu(menu)
+settings_menu.add_checkbutton(label = "Entering Action Text", variable = action_entry)
+# settings_menu.add_checkbutton(label = "Entering Roll Tables", variable = table_entry)
+# settings_menu.add_checkbutton(label = "", variable = unused)
+
+menu.add_cascade(label = "Settings", menu = settings_menu)
+root.config(menu = menu)
 
 
 reformatButton = Button(root, text="Reformat Text", command = lambda: reformat(inputText.get("1.0", "end-1c")))
