@@ -88,10 +88,10 @@ def handle_secrets(string):
     
     return string
 
-def handle_actions(string): 
+def handle_actions(string):
     string = sub(r"(\+|\-)(\d+) to hit", r"<strong>\1\2 to hit</strong>", string)
     string = sub(r"reach (\d) ft", r"reach <strong>\1 ft</strong>", string)
-    string = sub(r"Hit: (\d+) \((\d+)d(\d+) (\+|-) (\d+)\) (\w+) damage", r"Hit: <strong>\1 (\2d\3 \4 \5) \6 damage</strong>", string)
+    string = sub(r"Hit: (\d+) \((\d+)d(\d+) (\+|\-) (\d+)\) (\w+) damage", r"Hit: <strong>\1 (\2d\3 \4 \5) \6 damage</strong>", string)
     string = sub(r"Hit: (\d+) \((\d+)d(\d+)\) (\w+) damage", r"Hit: <strong>\1 (\2d\3) \6 damage</strong>", string)
     string = sub(r"DC (\d+) (\w+) saving throw", r"<strong>DC \1 \2</strong> saving throw", string)
     string = sub(r"DC (\d+) (\w+) saving throw", r"<strong>DC \1 \2</strong> saving throw", string)
@@ -112,6 +112,7 @@ def reformat(text):
     string = string.replace(r"”", r'"').replace(r"“", r'"')
     string = string.replace("’", "'")
     string = string.replace("- ", "-")
+    string = string.replace(u'\xa0', u' ')
 
     if "d8 Personality Trait" in string:
         string = handle_background_tables(string)
