@@ -5,6 +5,9 @@ from tkinter import Tk, Frame, Canvas, Text, Button, END, BooleanVar, Menu
 deityFields = ("(Alignment|Siblings|Temples|Worshippers|Sacred Animal|Sacred Colors|Suggested Domains|Favored Weapon|"
                + "Divine Ability|Divine Skill|Key Edicts|Key Anathema)")
 conditions = "(Blinded|Charmed|Deafened|Frightened|Grappled|Incapacitated|Invisible|Paralyzed|Petrified|Poisoned|Prone|Restrained|Stunned|Unconscious)"
+abilities = "(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)"
+skills = ("(Acrobatics|Animal Handling|Arcana|Athletics|Deception|History|Insight|Intimidation|Investigation|Medicine|Nature|"
+          + "Perception|Performance|Persuasion|Religion|Sleight of Hand|Stealth|Survival)")
 
 
 def to_title(match_obj):
@@ -97,14 +100,30 @@ def handle_secrets(string):
     return string
 
 
+def handle_skills(string):
+    # I'd be surprised if there isn't a way to do this in one line
+    string = sub(r"(attempt a[n]?|make a[n]?) " + abilities + " \\(" + skills + "\\) check", lambda m: m.group(0).lower(), string)
+    string = sub(r"(attempt a[n]?|make a[n]?) " + abilities.lower() + " \\((" + skills.lower() + "\\)) check", r"\1 [[/skill \4]] check", string)
+
+    return string
+
+
+def handle_saving_throws(string):
+    # I'd be surprised if there isn't a way to do this in one line
+    string = sub(r"DC (\d+) " + abilities + " saving throw", lambda m: m.group(0).lower(), string)
+    string = sub(r"DC (\d+) " + abilities.lower() + " saving throw", r"[[/save \2 \1]]", string)
+
+    string = sub(r"a[n]? " + abilities + " saving throw", lambda m: m.group(0).lower(), string)
+    string = sub(r"(a[n]?) " + abilities.lower() + " saving throw", r"\1 [[/save \2]]", string)
+
+    return string
+
+
 def handle_actions(string):
     string = sub(r"(\+|\-)(\d+) to hit", r"<strong>\1\2 to hit</strong>", string)
     string = sub(r"reach (\d) ft", r"reach <strong>\1 ft</strong>", string)
     string = sub(r"Hit: (\d+) \((\d+)d(\d+) (\+|\-) (\d+)\) (\w+) damage", r"Hit: <strong>\1 (\2d\3 \4 \5) \6 damage</strong>", string)
     string = sub(r"Hit: (\d+) \((\d+)d(\d+)\) (\w+) damage", r"Hit: <strong>\1 (\2d\3) \6 damage</strong>", string)
-    string = sub(r"DC (\d+) (\w+) saving throw", r"<strong>DC \1 \2</strong> saving throw", string)
-    string = sub(r"DC (\d+) (\w+) saving throw", r"<strong>DC \1 \2</strong> saving throw", string)
-    string = sub(r"a (\w+) saving throw", r"a <strong>\1</strong> saving throw", string)
 
     string = handle_secrets(string)
     return string
@@ -145,6 +164,8 @@ def reformat(text):
     string = handle_roll_tables(string)
 
     if action_entry:
+        string = handle_skills(string)
+        string = handle_saving_throws(string)
         string = handle_actions(string)
 
     string = string.replace("<p></p>", "").replace("<p><p>", "<p>")
