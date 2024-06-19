@@ -64,7 +64,8 @@ def handle_bolded_subtitles(string):
     string = sub(r"\n([A-Z]\w+) ([A-Z]\w+)\.", r"</p><p><strong>\1 \2.</strong>", string)
     string = sub(r"\n([A-Z]\w+) ([A-Z]\w+) ([A-Z]\w+)\.", r"</p><p><strong>\1 \2 \3.</strong>", string)
 
-    string = sub(r"<p><strong>(You Might|Others Probably)\.</strong>\.\.", r"<h2>\1...</h2>", string)
+    string = sub(r"<p><strong>(You Might)\.</strong>\.\.", r"<h2>\1...</h2>", string)
+    string = sub(r"<p><strong>(Others Probably)\.</strong>\.\.", r"</ul><h2>\1...</h2><ul>", string)
 
     return string
 
