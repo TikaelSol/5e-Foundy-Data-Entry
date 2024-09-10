@@ -141,7 +141,7 @@ def handle_roll_tables(string):
     return string
 
 
-def reformat(text):
+def reformat(text, remove_non_ASCII = True, action_entry = True):
     string = "<p>" + text
 
     string = handle_headers(string)
@@ -149,10 +149,12 @@ def reformat(text):
 
     string = string.replace("\n", " ")
     string = string.replace("<p><p>", "<p>")
-    string = string.replace(r"”", r'"').replace(r"“", r'"')
-    string = string.replace("’", "'")
-    string = string.replace("- ", "-")
     string = string.replace(u'\xa0', u' ')
+    string = string.replace("- ", "-")
+
+    if remove_non_ASCII:
+        string = string.replace(r"”", r'"').replace(r"“", r'"')
+        string = string.replace("’", "'")
 
     if "d8 Personality Trait" in string:
         string = handle_background_tables(string)
@@ -194,7 +196,7 @@ Width = 800
 
 root = Tk()
 
-root.title("5E on Foundry VTT Data Entry v 1.0.4")
+root.title("5E on Foundry VTT Data Entry v 1.0.5")
 
 canvas = Canvas(root, height=Height, width=Width)
 canvas.pack()
@@ -210,7 +212,8 @@ outputText.place(relx=0.51, rely=0.2, relwidth=0.49, relheight=0.8)
 
 ## Settings
 ###############################################################################
-action_entry = BooleanVar(value=True)
+action_entry = BooleanVar(value = True)
+remove_non_ASCII = BooleanVar(value = True)
 # table_entry = BooleanVar(value = False)
 # unused = BooleanVar(value = False)
 ###############################################################################
@@ -222,23 +225,22 @@ action_entry = BooleanVar(value=True)
 menu = Menu(root)
 
 settings_menu = Menu(menu)
-settings_menu.add_checkbutton(label="Entering Action Text", variable=action_entry)
+settings_menu.add_checkbutton(label = "Entering Action Text", variable = action_entry)
+settings_menu.add_checkbutton(label = "Replace non-standard characters", variable = remove_non_ASCII)
 # settings_menu.add_checkbutton(label = "Entering Roll Tables", variable = table_entry)
 # settings_menu.add_checkbutton(label = "", variable = unused)
 
-menu.add_cascade(label="Settings", menu=settings_menu)
-root.config(menu=menu)
+menu.add_cascade(label = "Settings", menu = settings_menu)
+root.config(menu = menu)
 
-reformatButton = Button(root, text="Reformat Text", command=lambda: reformat(inputText.get("1.0", "end-1c")))
-reformatButton.place(relx=0.75, rely=0, relwidth=0.25, relheight=0.2)
+reformatButton = Button(root, text = "Reformat Text", command = lambda: reformat(inputText.get("1.0", "end-1c"), remove_non_ASCII.get(), action_entry.get()))
+reformatButton.place(relx = 0.75, rely = 0, relwidth = 0.25, relheight = 0.2)
 
-resetButton = Button(root, text="Clear Input", command=lambda: clearInput())
-resetButton.place(relx=0, rely=0, relwidth=0.25, relheight=0.2)
-
+resetButton = Button(root, text = "Clear Input", command = lambda: clearInput())
+resetButton.place(relx = 0, rely = 0, relwidth = 0.25, relheight = 0.2)
 
 def main():
     root.mainloop()
-
 
 if __name__ == "__main__":
     main()
