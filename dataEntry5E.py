@@ -54,8 +54,8 @@ def handle_headers(string):
     return string
 
 
-def handle_proficiencies(string):
-    string = sub(r"(Skill Proficiencies:|Tool Proficiencies:|Languages:|Equipment:)", r"</p><p><strong>\1</strong>", string)
+def handle_traits(string):
+    string = sub(r"(Skill Proficiencies:|Skill Proficiency:|Tool Proficiencies:|Tool Proficiency:|Languages:|Equipment:|Ability Scores:|Feat:|Creature Type:|Size:|Speed:)", r"</p><p><strong>\1</strong>", string)
     return string
 
 
@@ -112,10 +112,10 @@ def handle_skills(string):
 def handle_saving_throws(string):
     # I'd be surprised if there isn't a way to do this in one line
     string = sub(r"DC (\d+) " + abilities + " saving throw", lambda m: m.group(0).lower(), string)
-    string = sub(r"DC (\d+) " + abilities.lower() + " saving throw", r"[[/save \2 \1]]", string)
+    string = sub(r"DC (\d+) " + abilities.lower() + " saving throw", r"[[/save \2 \1]] saving throw", string)
 
     string = sub(r"a[n]? " + abilities + " saving throw", lambda m: m.group(0).lower(), string)
-    string = sub(r"(a[n]?) " + abilities.lower() + " saving throw", r"\1 [[/save \2]]", string)
+    string = sub(r"(a[n]?) " + abilities.lower() + " saving throw", r"\1 [[/save \2]] saving throw", string)
 
     return string
 
@@ -131,7 +131,7 @@ def handle_actions(string):
 
 
 def handle_conditions(string):
-    string = sub(conditions, r"&Reference[\1]", string, flags=IGNORECASE)
+    string = sub(conditions, r"&Reference[\1]", string)
     # TODO: Handle leveled exhaustion condition
     return string
 
@@ -141,8 +141,15 @@ def handle_roll_tables(string):
     return string
 
 
+def handle_beliefs(string):
+    string = string.replace("Popular Edicts", "</p><p><strong>Popular Edits</strong>")
+    string = string.replace("Popular Anathema", "</p><p><strong>Popular Anathema</strong>")
+    return string
+
+
+
 def reformat(text, remove_non_ASCII = True, action_entry = True):
-    string = "<p>" + text
+    string = "<p>" + text + "</p>"
 
     string = handle_headers(string)
     string = handle_bolded_subtitles(string)
@@ -161,15 +168,17 @@ def reformat(text, remove_non_ASCII = True, action_entry = True):
 
     string = handle_deity(string)
     string = handle_bullet_lists(string)
-    string = handle_proficiencies(string)
-    string = handle_damage_rolls(string)
+    string = handle_traits(string)
     string = handle_conditions(string)
     string = handle_roll_tables(string)
+    string = handle_beliefs(string)
 
     if action_entry:
+        string = handle_damage_rolls(string)
         string = handle_skills(string)
         string = handle_saving_throws(string)
         string = handle_actions(string)
+        
 
     string = string.replace("<p></p>", "").replace("<p><p>", "<p>")
     string = string.replace(" <p>", "</p><p>")
